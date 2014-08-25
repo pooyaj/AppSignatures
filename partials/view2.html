@@ -1,0 +1,26 @@
+<div class="container">
+  <div class="starter-template" ng-controller="DetailController">
+    <h1>Application Details</h1>
+    <dl class="dl-horizontal">
+      <dt>Application Name</dt>
+      <dd>{{currentData[0]}}</dd>
+
+      <dt>Vendor</dt>
+      <dd><a href='http://{{currentData[7]}}'>{{currentData[6]}}</a></dd>
+      <dt>Description</dt>
+      <dd>{{currentData[9]}}</dd>
+      
+      <dt>Impact</dt>
+      <dd>{{currentData[8]}}</dd>
+
+      <dt>Affected</dt>
+      <dd>{{currentData[11]}}</dd>
+
+      <dt>Recommended Action</dt>
+      <dd>{{currentData[12]}}</dd>
+    </dl>
+
+    <a href="#/">Back</a>
+
+  </div>
+</div><!-- /.container -->
