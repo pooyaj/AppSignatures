@@ -1,6 +1,10 @@
 (function() {
+  // the main angular module for the app
   var myApp = angular.module('myApp', ['ngRoute']);
   
+  /* The app uses two views, overview and detail. 
+  The overview contains the charts and the table, and the detail view shows details 
+  of a particular app. */
   myApp.config(function($routeProvider) {
     $routeProvider
     .when('/',
@@ -17,7 +21,9 @@
 
   });
 
-  // main app controller
+  /* This is the main controller responsible for loading data, filtering according to the search 
+  parameters, and also determining the search results limit. 
+  */
   myApp.controller('MainController', function($scope, $filter) {
     $scope.listdata = fortidata;
     $scope.searchLimit = 20;
@@ -39,7 +45,8 @@
     }, true);
   });
 
-  // detail controller responsible for showing application details
+  /* detail controller responsible for showing application details. uses the app name received as 
+  parameters to find and show the app details.*/
   myApp.controller('DetailController', function($scope, $routeParams) {
     $scope.appName = $routeParams.appName;
     $scope.currentData = [];
@@ -49,7 +56,6 @@
         break;
       }
     }
-    console.log($scope.currentData);
   });
 
 
@@ -75,23 +81,18 @@
       .scale(y)
       .orient("left")
 
-
       var svg = d3.select(el[0]).append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-
       svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")");
 
-
       svg.append("g")
       .attr("class", "y axis");
-
-
 
       function update() {
         // Grouping the data by app type
@@ -137,15 +138,11 @@
         .attr("width", x.rangeBand())
         .attr("y", function(d) { return y(d.values); })
         .attr("height", function(d) { return height - y(d.values); });
-
       }
-
+      // responds when data changes (aka filtering happens)
       scope.$watch('data',function(value) {          
         update();
       }, true);
-
-
-
     }
     return {
       link: link,
@@ -157,122 +154,121 @@
 // pie (aka dounut) chart directive
 myApp.directive('pieChart', function(){
   function link(scope, el, attr){
-    var gindex = scope.gindex;        
-        //var color = d3.scale.category10();
-        console.log(scope.colors);
-        var scheme = {"YlOrRd": colorbrewer.YlOrRd[3], "PRGn": colorbrewer.PRGn[4], "BuPu": colorbrewer.BuPu[3]};
-        
-        // Calculating the color scale
-        var scaleData = d3.nest()
-        .key(function(d) { return d[gindex]; })
-        .rollup(function(leaves) { return leaves.length; })
-        .entries(scope.data);
-        
-        var categories = scaleData.map(function (item) { return item.key; }).sort();
-        
-        var color = d3.scale.ordinal()
-        .domain(categories)
-        .range(scheme[scope.colors]);
+    var gindex = scope.gindex;
+    var scheme = {"YlOrRd": colorbrewer.YlOrRd[3], "PRGn": colorbrewer.PRGn[4], "BuPu": colorbrewer.BuPu[3]};
+    
+    // Calculating the color scale
+    var scaleData = d3.nest()
+    .key(function(d) { return d[gindex]; })
+    .rollup(function(leaves) { return leaves.length; })
+    .entries(scope.data);
+    
+    var categories = scaleData.map(function (item) { return item.key; }).sort();
+    
+    var color = d3.scale.ordinal()
+    .domain(categories)
+    .range(scheme[scope.colors]);
 
-        
-        var width = 200;
-        var height = 200;
-        var margin_bottom = 50;
-        var min = Math.min(width, height);
-        console.log(el.width());
-        var svg = d3.select(el[0]).append('svg');
-        var pie = d3.layout.pie().sort(null);
-        var arc = d3.svg.arc()
-        .outerRadius(min / 2 * 0.9)
-        .innerRadius(min / 2 * 0.5);
+    
+    var width = 200;
+    var height = 200;
+    var margin_bottom = 50;
+    var min = Math.min(width, height);
+    console.log(el.width());
+    var svg = d3.select(el[0]).append('svg');
+    var pie = d3.layout.pie().sort(null);
+    var arc = d3.svg.arc()
+    .outerRadius(min / 2 * 0.9)
+    .innerRadius(min / 2 * 0.5);
 
-        pie.value(function(d){ return d.values; });
+    pie.value(function(d){ return d.values; });
 
-        svg.attr({width: width, height: height+margin_bottom});
+    svg.attr({width: width, height: height+margin_bottom});
 
-        // group for the legend
-        var legendg = svg.append('g')
-        .attr('transform', 'translate(' + width / 2 + ',' + (height + margin_bottom -45) + ')');
-        var legrect = legendg.selectAll('rect')
-        .data(scaleData)
-        .enter().append("rect")
-        .attr("x", 0)
-        .attr("y", function(d, i){ return i*10-10;})
-        .attr("width", 10)
-        .attr("height", 10)
-        .style("fill", function(d) {             
-          return color(d.values);
-        });
+    // group for the legend
+    var legendg = svg.append('g')
+    .attr('transform', 'translate(' + width / 2 + ',' + (height + margin_bottom -45) + ')');
+    var legrect = legendg.selectAll('rect')
+    .data(scaleData)
+    .enter().append("rect")
+    .attr("x", 0)
+    .attr("y", function(d, i){ return i*10-10;})
+    .attr("width", 10)
+    .attr("height", 10)
+    .style("fill", function(d) {             
+      return color(d.values);
+    });
+    // legend text
+    legendg.selectAll('text')
+    .data(scaleData)
+    .enter()
+    .append("text")
+    .attr("x", 15)
+    .attr("class", 'arcLabel')
+    .attr("y", function(d, i){ return (d.key-1) *  10;})
+    .text(function(d) {
+      var text = scope.labels[d.key-1];
+      return text;
+    });
 
-        legendg.selectAll('text')
-        .data(scaleData)
-        .enter()
-        .append("text")
-        .attr("x", 15)
-        .attr("class", 'arcLabel')
-        .attr("y", function(d, i){ return (d.key-1) *  10;})
-        .text(function(d) {
-          var text = scope.labels[d.key-1];
-          return text;
-        });
+    // group for the chart
+    var g = svg.append('g')
+    .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
 
-        // group for the chart
-        var g = svg.append('g')
-        .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
+    // group for chart labels
+    var labelg = svg.append("g")
+    .attr("class", "lblGroup")
+    .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
 
-        // group for labels
-        var labelg = svg.append("g")
-        .attr("class", "lblGroup")
-        .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
+    // add the <path>s for each arc slice
+    var arcs = g.selectAll('path');
+    var sliceLabel = labelg.selectAll("text")
 
-        
-        // add the <path>s for each arc slice
-        var arcs = g.selectAll('path');
-        var sliceLabel = labelg.selectAll("text")
+    // creates an arc tween 
+    function arcTween(a) {
+      var i = d3.interpolate(this._current, a);
+      this._current = i(0);
+      return function(t) {
+        return arc(i(t));
+      };
+    }
 
-        function arcTween(a) {
-          var i = d3.interpolate(this._current, a);
-          this._current = i(0);
-          return function(t) {
-            return arc(i(t));
-          };
-        }          
-
-
-        scope.$watch('data', function(value){
-          var mydata = d3.nest()
-          .key(function(d) { return d[gindex]; })
-          .rollup(function(leaves) { return leaves.length; })
-          .entries(value);
-          
-          arcs = arcs.data(pie(mydata));
-          arcs.enter().append('path')
-          .style('stroke', 'white')
-          .each(function(d) {this._current = d});        
-          arcs.exit()
-          .remove();
-          arcs
-          .transition().ease("quad").duration(300)
-          .attrTween('d', arcTween)
-          .attr('fill', function(d, i){ return color(d.data.key); })
-          
-
-          
-          sliceLabel = sliceLabel.data(pie(mydata));
-          sliceLabel.enter().append("text")
-          .attr("class", "arcLabel")          
-          .attr("text-anchor", "middle");          
-          sliceLabel.exit().remove();
-          sliceLabel
-          .transition().ease("quad").duration(300)
-          .text(function(d, i) {return d.data.values;})
-          .attr("transform", function(d) {return "translate(" + arc.centroid(d) + ")"; });
-        }, true);
+    // responds to data filtering and updates the chart
+    scope.$watch('data', function(value){
+      var mydata = d3.nest()
+      .key(function(d) { return d[gindex]; })
+      .rollup(function(leaves) { return leaves.length; })
+      .entries(value);
+      
+      // update the chart itself
+      arcs = arcs.data(pie(mydata));
+      arcs.enter().append('path')
+      .style('stroke', 'white')
+      .each(function(d) {this._current = d});        
+      arcs.exit()
+      .remove();
+      arcs
+      .transition().ease("quad").duration(300)
+      .attrTween('d', arcTween)
+      .attr('fill', function(d, i){ return color(d.data.key); })
+      
+      // update the labels
+      sliceLabel = sliceLabel.data(pie(mydata));
+      sliceLabel.enter().append("text")
+      .attr("class", "arcLabel")          
+      .attr("text-anchor", "middle");          
+      sliceLabel.exit().remove();
+      sliceLabel
+      .transition().ease("quad").duration(300)
+      .text(function(d, i) {return d.data.values;})
+      .attr("transform", function(d) {return "translate(" + arc.centroid(d) + ")"; });
+    }, true);
 }
 return {
   link: link,
   restrict: 'E',
-  scope: { data: '=', gindex: '=', colors: "=", labels: "=", }
+  // this directive receives data, the index to group the data, color scheme (ColorBrewer), and the textual labels
+  scope: { data: '=', gindex: '=', colors: "=", labels: "=", } 
 };
 });
 
