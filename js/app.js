@@ -6,12 +6,12 @@
     .when('/',
     {
       controller : 'MainController',
-      templateUrl : 'Partials/View1.html'
+      templateUrl : 'partials/view1.html'
     })
     .when('/view2/:appName',
     {
       controller: 'DetailController',
-      templateUrl : 'Partials/View2.html'
+      templateUrl : 'partials/view2.html'
     })
     .otherwise({redirectTo: '/'});
 
